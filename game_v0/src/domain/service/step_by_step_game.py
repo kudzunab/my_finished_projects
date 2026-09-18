@@ -6,7 +6,7 @@ from src.domain.service import get_best_turn, check_correct_game_state, check_ga
 class StepByStepGame:
 
     @staticmethod
-    def get_best_turn(game: Game, turn):
+    def get_best_turn(game: Game, turn):   #num = -1
         return get_best_turn(game, turn)
 
     @staticmethod

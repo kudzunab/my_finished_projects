@@ -1,5 +1,5 @@
 from src.domain.model import Game
-from src.domain.model.model import Status
+from src.domain.model.model import GameStatus
 
 """
     @brief Функция проверки выигрыша на указанном ходе в данной игре
@@ -37,25 +37,23 @@ def get_free_cells(_game: Game):
     @brief Проверка окончания игры
 """
 def check_game_finish(_game: Game):
-
     if is_player_win(0, _game) == 1:
-        return Status.win_player_with_UUID
+        return GameStatus.cross_win
     if is_player_win(1, _game) == 1:
-        return Status.win_player_with_UUID
+        return GameStatus.nulls_win
 
     free_cells = get_free_cells(_game)
 
     if not free_cells:
-        return Status.nobody_wins
+        return GameStatus.nobody_win
 
-    return Status.turn_player_with_UUID
+    return GameStatus.ongoing
 
 """
     @brief Функция проверки состояния игрового поля
 """
 def check_correct_game_state(_game: Game):
     if _game is None or _game.turn not in [0, 1]:
-        print("ВЫЛЕТ: неверный ход или пустая игра")
         return False
 
     diff_count = 0
@@ -63,16 +61,13 @@ def check_correct_game_state(_game: Game):
         for j in range(3):
             if _game.snapshot[i][j] != -1:
                 if _game.field[i][j] != _game.snapshot[i][j]:
-                    print(f"ВЫЛЕТ: изменилась старая клетка [{i}][{j}]")
                     return False
 
             if _game.snapshot[i][j] == -1 and _game.field[i][j] != -1:
                 diff_count += 1
                 if _game.field[i][j] != _game.turn:
-                    print(f"ВЫЛЕТ: не тот символ в новой клетке. Ждали {_game.turn}, пришло {_game.field[i][j]}")
                     return False
     if diff_count > 1:
-        print("ВЫЛЕТ: сделано больше одного хода за раз!")
         return False
 
     cross_num, null_num = 0, 0
@@ -87,8 +82,14 @@ def check_correct_game_state(_game: Game):
             elif _game.field[i][j] == 1:
                 null_num += 1
 
-    if not (cross_num == null_num or cross_num == null_num + 1):
-        return False
+    if _game.turn == 0:
+        if not (cross_num == null_num or cross_num == null_num + 1):
+            return False
+
+    elif _game.turn == 1:
+        if null_num != cross_num:
+            return False
+
 
     cross_win = is_player_win(0, _game)
     null_win = is_player_win(1, _game)

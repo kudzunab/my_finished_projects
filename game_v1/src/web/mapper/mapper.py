@@ -1,31 +1,24 @@
-from src.domain.model import Game, GameError, Status #GameStatus
+from src.domain.model import Game, GameError, Status
 from src.domain.service.game_manager import GameManager
 from src.web.model import BrowserGame
 
 def from_game_to_browser_game(source: Game, target: BrowserGame, status_code):
     target.uuid = str(source.UUID)  # оно и так не число, но подстраховались
     target.current_player_uuid = source.current_player_uuid
-    #target.message = get_text_message(status_code)
     target.current_turn = source.turn
     for i in range(3):
         for j in range(3):
             target.field[i][j] = source.field[i][j]
 
 def from_browser_game_to_game(source: BrowserGame, target: Game):
-    # target.current_player_uuid = source.current_player_uuid
-    # target.uuid = source.uuid
-    # target.turn = source.current_turn
     for i in range(3):
         for j in range(3):
             target.field[i][j] = source.field[i][j]
 
 
 def web_turn_synch(manager: GameManager, web_model: BrowserGame, player_uuid: str):
-    # получаем игру с обновленным игровым полем
     try:
         from_browser_game_to_game(web_model, manager.game)
-            #player_uuid = getattr(web_model, "pl_uuid", None)
-            # делаем ход и проверяем
         is_success, status_code = manager.make_turn(player_uuid)
 
     except (TypeError, IndexError):
@@ -34,7 +27,6 @@ def web_turn_synch(manager: GameManager, web_model: BrowserGame, player_uuid: st
         manager.game.restore_field()
         is_success, status_code = False, GameError.INVALID_FORMAT
 
-    # в случае ошибки со стороны пользователя, восстанавливаем данные
     from_game_to_browser_game(manager.game, web_model, status_code)
 
     return web_model, status_code
